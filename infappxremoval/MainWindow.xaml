@@ -1,0 +1,103 @@
+﻿<Window x:Class="infappxremoval.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:infappxremoval"
+        mc:Ignorable="d"
+        Title="Inf Appx Removal" Height="720" Width="1280"
+        Left="50" Top="10">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="2*"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="120"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Appx Name"/>
+                <TextBox Width="150" Margin="5" Name="AppxNameTB" KeyUp="AppxNameTB_KeyUp" />
+                <Button Content="SEARCH" Margin="5" Padding="2" Name="AppxSearchBtn" Click="AppxSearchBtn_Click"/>
+                <RadioButton Content="Vendor" Name="VendorRadioBtn" VerticalAlignment="Center" IsChecked="True" Margin="2,0" Visibility="Collapsed"/>
+                <RadioButton Content="Version" Name="VersionRadioBtn" VerticalAlignment="Center" Margin="2,0" Visibility="Collapsed"/>
+                <Label Content="Vendor/Version"/>
+                <TextBox Width="150" Margin="5" Name="VendorNameTB" KeyUp="VendorNameTB_KeyUp"/>
+                <Button Content="SEARCH" Margin="5" Padding="2" Name="VendorSearchBtn" Click="VendorSearchBtn_Click"/>
+
+                <Button Content="SCAN ALL" Margin="5" Padding="2" Name="RefreshBtn" Click="RefreshBtn_Click"/>
+
+                <Button Content="LOAD INF LIST" Margin="5" Padding="2" Name="LoadListBtn" Click="LoadListBtn_Click" />
+                <Button Content="UNINSTALL ALL INF" Margin="5" Padding="2" Name="UninstallAllBtn" Click="UninstallAllBtn_Click"/>
+
+                <Button Content="DEBUG" Margin="5" Padding="2" Name="DebugBtn" Click="DebugBtn_Click" Visibility="Collapsed"/>
+            </StackPanel>
+            <Label Grid.Column="1" Content="by Kin v1.0b" Name="VerLabel" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
+        </Grid>
+        
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Label Content="AppxPackage" FontSize="11" Padding="0" Margin="5,0"/>
+            <ListBox Grid.Row="1" Name="AppxPackageLB" BorderThickness="1" BorderBrush="Black" Margin="5,0" HorizontalContentAlignment="Stretch">
+                <!--<Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50" />
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Can not find xxx related appx" />
+                    <Button Grid.Column="1" Content="Uninstall" FontSize="11"/>
+                </Grid>-->
+            </ListBox>
+            <Label Grid.Column="1" Content="AppxProvisionedPackage" FontSize="11" Padding="0" Margin="5,0"/>
+            <ListBox Grid.Row="1" Grid.Column="1" Name="AppxProvisionedPackageLB" BorderBrush="Black" BorderThickness="1" Margin="5,0"
+                      HorizontalContentAlignment="Stretch"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Label Content="1st: Software Component Inf" Grid.Column="0" Padding="0" Margin="5,0"/>
+            <ListBox Name="SwcInfLB" Grid.Row="1" Grid.Column="0" BorderBrush="Black" BorderThickness="1" Margin="5,0" HorizontalContentAlignment="Stretch"/>
+
+            <Label Content="2nd: Base Inf" Grid.Column="1" Padding="0" Margin="5,0"/>
+            <ListBox Name="BaseInfLB" Grid.Row="1" Grid.Column="1" BorderBrush="Black" BorderThickness="1" Margin="5,0" HorizontalContentAlignment="Stretch"/>
+
+            <Label Content="3rd: Extension Inf" Grid.Column="2" Padding="0" Margin="5,0"/>
+            <ListBox Name="ExtInfLB" Grid.Row="1" Grid.Column="2" BorderBrush="Black" BorderThickness="1" Margin="5,0" HorizontalContentAlignment="Stretch"/>
+
+        </Grid>
+
+        <Grid Grid.Row="3" Margin="0,5,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Label Content="OUTPUT" FontSize="11" Padding="1" Margin="5,0"/>
+            <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Margin="5,0,5,5">
+                <ScrollViewer Name="OutputSV" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <TextBlock Name="OutputTB" TextWrapping="Wrap"/>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
