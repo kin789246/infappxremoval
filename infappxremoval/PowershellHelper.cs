@@ -154,7 +154,7 @@ namespace infappxremoval
 
         // Get-CimInstance win32_pnpsigneddriver | where infname -eq 'oem10.inf'
 
-        public Task<List<Win32PnpSignedDriverData>> GetHwIdofOemInf()
+        public Task<List<Win32PnpSignedDriverData>> GetWin32PnpSignedDriverData()
         {
             List<Win32PnpSignedDriverData> wList = new List<Win32PnpSignedDriverData>();
             //string script = "Get-CimInstance win32_pnpsigneddriver | where infname -eq '" + oem + "'";
@@ -190,9 +190,9 @@ namespace infappxremoval
                         {
                             w32d.InfName = member.Value.ToString();
                         }
-                        if (member.Name == "DeviceName" && member.Value != null)
+                        if (member.Name == "Description" && member.Value != null)
                         {
-                            w32d.DeviceName = member.Value.ToString();
+                            w32d.Descrpition = member.Value.ToString();
                         }
                     }
                 }
@@ -200,6 +200,50 @@ namespace infappxremoval
                 return wList;
             });
          }
+
+        public Task<List<PnpDeviceData>> GetPnpDeviceData()
+        {
+            List<PnpDeviceData> wList = new List<PnpDeviceData>();
+            //Get-PnpDevice | select *
+            ps = PowerShell.Create().AddCommand("Get-PnpDevice").AddCommand("select").AddArgument("*");
+
+            ps.Runspace = runspace;
+
+            return Task.Run(() =>
+            {
+                ExecutePS(ps);
+
+                foreach (var item in pso)
+                {
+                    PnpDeviceData w32d = new PnpDeviceData();
+                    wList.Add(w32d);
+                    foreach (var member in item.Members)
+                    {
+                        if (member.Name == "Description" && member.Value != null)
+                        {
+                            w32d.Description = member.Value.ToString();
+                        }
+                        if (member.Name == "Status" && member.Value != null)
+                        {
+                            if (member.Value.ToString() == "OK")
+                            {
+                                w32d.Status = DeviceStatus.OK;
+                            }
+                            else
+                            {
+                                w32d.Status = DeviceStatus.Unknown;
+                            }
+                        }
+                        if (member.Name == "InstanceId" && member.Value != null)
+                        {
+                            w32d.InstanceId = member.Value.ToString();
+                        }
+                    }
+                }
+
+                return wList;
+            });
+        }
 
         public Task<string> DevconRemove(string name)
         {

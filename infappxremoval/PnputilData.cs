@@ -20,7 +20,7 @@ namespace infappxremoval
         private string driverVersion;
         private string signerName;
         private string friendlyName;
-        private string deviceName;
+        private string description;
         private string hardwareId;
 
         public string PublishedName { get => publishedName; set => publishedName = value; }
@@ -31,7 +31,7 @@ namespace infappxremoval
         public string DriverVersion { get => driverVersion; set => driverVersion = value; }
         public string SignerName { get => signerName; set => signerName = value; }
         public string FriendlyName { get => friendlyName; set => friendlyName = value; }
-        public string DeviceName { get => deviceName; set => deviceName = value; }
+        public string Description { get => description; set => description = value; }
         public string HardwareId { get => hardwareId; set => hardwareId = value; }
 
         public PnputilData()
@@ -44,7 +44,7 @@ namespace infappxremoval
             driverVersion = string.Empty;
             signerName = string.Empty;
             friendlyName = string.Empty;
-            deviceName = string.Empty;
+            description = string.Empty;
             hardwareId = string.Empty;
         }
 
@@ -53,7 +53,7 @@ namespace infappxremoval
             string s = string.Empty;
             if (string.IsNullOrEmpty(friendlyName))
             {
-                s = deviceName;
+                s = description;
             }
             else
             {

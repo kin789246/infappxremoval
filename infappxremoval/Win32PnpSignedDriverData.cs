@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace infappxremoval
+﻿namespace infappxremoval
 {
     class Win32PnpSignedDriverData
     {
         private string friendlyName;
-        private string deviceName;
+        private string description;
         private string driverVersion;
         private string infName;
         private string hardwareId;
 
         public string FriendlyName { get => friendlyName; set => friendlyName = value; }
-        public string DeviceName { get => deviceName; set => deviceName = value; }
+        public string Descrpition { get => description; set => description = value; }
         public string DriverVersion { get => driverVersion; set => driverVersion = value; }
         public string InfName { get => infName; set => infName = value; }
         public string HardwareId { get => hardwareId; set => hardwareId = value; }
@@ -23,7 +17,7 @@ namespace infappxremoval
         public Win32PnpSignedDriverData()
         {
             friendlyName = string.Empty;
-            deviceName = string.Empty;
+            description = string.Empty;
             driverVersion = string.Empty;
             InfName = string.Empty;
             hardwareId = string.Empty;
@@ -34,13 +28,13 @@ namespace infappxremoval
             string s = string.Empty;
             if (string.IsNullOrEmpty(friendlyName))
             {
-                s = deviceName;
+                s = description;
             }
             else
             {
                 s = friendlyName;
             }
-            return "Name: " + s + "\n"
+            return "Description: " + s + "\n"
                 + "DriverVersion: " + driverVersion + "\n"
                 + "InfName: " + infName + "\n"
                 + "HardwareId: " + hardwareId + "\n";

@@ -22,6 +22,7 @@ namespace infappxremoval
         private List<PnputilData> installedInfList;
         //private List<string> infToRemove;
         private List<Win32PnpSignedDriverData> hwIdOemInfList;
+        private List<PnpDeviceData> pnpDeviceList;
         //get Intel HD audio extension inf
         private string intelHdAudioExtInf = string.Empty;
 
@@ -32,7 +33,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.5b by Kin";
+            VerLabel.Content = "v0.6b by Kin";
         }
 
         private async void InitAll()
@@ -47,7 +48,8 @@ namespace infappxremoval
             OutputTB.Inlines.Add(AddString("Initial data..."));
 
             PowershellHelper psh = new PowershellHelper();
-            hwIdOemInfList = await psh.GetHwIdofOemInf();
+            hwIdOemInfList = await psh.GetWin32PnpSignedDriverData();
+            pnpDeviceList = new List<PnpDeviceData>();
 
             OutputTB.Inlines.Add(AddString("Done\n"));
             await LoadInfData();
@@ -102,14 +104,14 @@ namespace infappxremoval
                         {
                             list[i].HardwareId += " | ";
                         }
-                        if (!string.IsNullOrEmpty(list[i].DeviceName))
+                        if (!string.IsNullOrEmpty(list[i].Description))
                         {
-                            list[i].DeviceName += " | ";
+                            list[i].Description += " | ";
                         }
 
                         list[i].FriendlyName += item.FriendlyName;
                         list[i].HardwareId += item.HardwareId;
-                        list[i].DeviceName += item.DeviceName;
+                        list[i].Description += item.Descrpition;
                     }
                 }
             }
@@ -187,42 +189,77 @@ namespace infappxremoval
             if (btn != null)
             {
                 PnputilHelper helper = new PnputilHelper();
-                DevconHelper dh = new DevconHelper();
+                //DevconHelper dh = new DevconHelper();
 
                 string oem = btn.Tag.ToString();
                 OutputTB.Inlines.Add(AddString("wait for uninstalling " + oem + "\n"));
-
-                //save oem list before remove
-                List<string> savedList = SaveList();
-
-                if (oem.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
+                try
                 {
-                    await ProcessIntelHdAudioController();
-                }
+                    //save oem list before remove
+                    List<string> savedList = SaveList();
 
-                string s = string.Empty;
-                List<string> hwIds = GetHwId(btn.Tag.ToString());
-                if (hwIds.Count != 0)
-                {
-                    foreach (var item in hwIds)
+                    PowershellHelper psh = new PowershellHelper();
+                    pnpDeviceList = await psh.GetPnpDeviceData();
+
+                    if (oem.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
                     {
-                        s = await dh.RemoveDriver(item);
-                        OutputTB.Inlines.Add(AddString(s));
+                        await ProcessIntelHdAudioController();
+                    }
+
+                    string s = string.Empty;
+                    List<string> instanceIds = GetInstanceId(btn.Tag.ToString());
+                    PsexecHelper pseh = new PsexecHelper();
+                    if (instanceIds.Count != 0)
+                    {
+                        foreach (var item in instanceIds)
+                        {
+                            s = await pseh.DeleteRegistryKey(item);
+                            OutputTB.Inlines.Add(AddString(s));
+                            OutputSV.ScrollToEnd();
+                        }
+                    }
+                    s = await helper.DeleteDriver(oem);
+                    OutputTB.Inlines.Add(AddString(s));
+                    OutputSV.ScrollToEnd();
+
+                    await LoadInfData();
+                    GoSearchInf(savedList);
+                }
+                catch (Exception exp)
+                {
+                    OutputTB.Inlines.Add(AddString(exp.Message));
+                    OutputSV.ScrollToEnd();
+                }
+            }
+        }
+
+        private List<string> GetInstanceId(string oeminf)
+        {
+            List<string> list = new List<string>();
+            List<string> result = new List<string>();
+
+            foreach (var w32pnp in hwIdOemInfList)
+            {
+                if (w32pnp.InfName == oeminf)
+                {
+                    list.Add(w32pnp.Descrpition);
+                }
+            }
+
+            foreach (var item in list)
+            {
+                foreach (var pnp in pnpDeviceList)
+                {
+                    if (pnp.Description.Equals(item, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Add(pnp.InstanceId);
+                        //OutputTB.Inlines.Add(AddString("add " + pnp.InstanceId + "\n"));
+                        //OutputSV.ScrollToEnd();
                     }
                 }
-                s = await helper.DeleteDriver(oem);
-                OutputTB.Inlines.Add(AddString(s));
-                //if (s.Contains("deleted successfully"))
-                //{
-                //    btn.IsEnabled = false;
-                //}
-                OutputSV.ScrollToEnd();
-
-                //await dh.Rescan();
-
-                await LoadInfData();
-                GoSearchInf(savedList);
             }
+            
+            return result;
         }
 
         private List<string> SaveList()
@@ -617,51 +654,62 @@ namespace infappxremoval
             else
             {
                 //do yes stuff
-                OutputTB.Inlines.Add(AddString("Wait for uninstalling all inf listed...\n"));
-                OutputSV.ScrollToEnd();
-                //List<string> oemNumberList = new List<string>();
-                //GetOemNumberFromListBox(oemNumberList, SwcInfLB);
-                //GetOemNumberFromListBox(oemNumberList, BaseInfLB);
-                //GetOemNumberFromListBox(oemNumberList, ExtInfLB);
-
-                List<string> savedList = SaveList();
-
-                if (savedList.Count == 0)
+                try
                 {
-                    OutputTB.Inlines.Add(AddString("No inf file to be uninstalled.\n"));
+                    OutputTB.Inlines.Add(AddString("Wait for uninstalling all inf listed...\n"));
                     OutputSV.ScrollToEnd();
-                    return;
-                }
-                
-                PnputilHelper helper = new PnputilHelper();
-                DevconHelper dh = new DevconHelper();
 
-                foreach (var item in savedList)
+                    List<string> savedList = SaveList();
+
+                    if (savedList.Count == 0)
+                    {
+                        OutputTB.Inlines.Add(AddString("No inf file to be uninstalled.\n"));
+                        OutputSV.ScrollToEnd();
+                        return;
+                    }
+
+                    PnputilHelper helper = new PnputilHelper();
+                    DevconHelper dh = new DevconHelper();
+
+                    foreach (var item in savedList)
+                    {
+                        OutputTB.Inlines.Add(AddString("Wait for uninstalling " + item + " ...\n"));
+
+                        //ask if remove Intel High Definition Audio Controller
+                        if (item.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
+                        {
+                            await ProcessIntelHdAudioController();
+                        }
+                        string s = string.Empty;
+
+                        PowershellHelper psh = new PowershellHelper();
+                        pnpDeviceList = await psh.GetPnpDeviceData();
+
+                        List<string> instanceIds = GetInstanceId(item);
+                        PsexecHelper pseh = new PsexecHelper();
+                        if (instanceIds.Count != 0)
+                        {
+                            foreach (var id in instanceIds)
+                            {
+                                s = await pseh.DeleteRegistryKey(id);
+                                OutputTB.Inlines.Add(AddString(s));
+                                OutputSV.ScrollToEnd();
+                            }
+                        }
+                        s = await helper.DeleteDriver(item);
+                        OutputTB.Inlines.Add(AddString(s));
+                        OutputSV.ScrollToEnd();
+                    }
+
+                    await LoadInfData();
+                    GoSearchInf(savedList);
+                }
+                catch (Exception exp)
                 {
-                    OutputTB.Inlines.Add(AddString("Wait for uninstalling " + item + " ...\n"));
 
-                    //ask if remove Intel High Definition Audio Controller
-                    if (item.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
-                    {
-                        await ProcessIntelHdAudioController();
-                    }
-                    string s = string.Empty;
-
-                    List<string> hwIds = GetHwId(item);
-                    foreach (var hwId in hwIds)
-                    {
-                        s += await dh.RemoveDriver(hwId);
-                    }
-                    s += await helper.DeleteDriver(item);
-
-                    OutputTB.Inlines.Add(AddString(s));
+                    OutputTB.Inlines.Add(AddString(exp.Message));
                     OutputSV.ScrollToEnd();
                 }
-
-                //await dh.Rescan();
-                
-                await LoadInfData();
-                GoSearchInf(savedList);
             }
         }
 
@@ -684,13 +732,21 @@ namespace infappxremoval
                 {
                     foreach (var item in hwIdOemInfList)
                     {
-                        if (item.DeviceName.ToLower().Contains("Audio Controller".ToLower()) 
+                        if (item.Descrpition.ToLower().Contains("Audio Controller".ToLower()) 
                             && item.HardwareId.ToLower().Contains("PCI\\VEN_8086".ToLower()))
                         {
-                            DevconHelper dh = new DevconHelper();
-                            string s = await dh.RemoveDriver(item.HardwareId);
-                            OutputTB.Inlines.Add(AddString(s));
-                            OutputSV.ScrollToEnd();
+                            //DevconHelper dh = new DevconHelper();
+                            //string s = await dh.RemoveDriver(item.HardwareId);
+                            PsexecHelper psexec = new PsexecHelper();
+                            foreach (var pnp in pnpDeviceList)
+                            {
+                                if (pnp.Description.Equals(item.Descrpition, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    string s = await psexec.DeleteRegistryKey(pnp.InstanceId);
+                                    OutputTB.Inlines.Add(AddString(s));
+                                    OutputSV.ScrollToEnd();
+                                }
+                            }
                         }
                     }
                 }
@@ -720,16 +776,14 @@ namespace infappxremoval
             {
                 var watch = Stopwatch.StartNew();
 
-                PowershellHelper psh = new PowershellHelper();
-                List<Win32PnpSignedDriverData> w32d = await psh.GetHwIdofOemInf();
-                foreach (var item in w32d)
-                {
-                    OutputTB.Inlines.Add(AddString(item.PrintProperty() + "\n", Colors.Black, Colors.White));
-                    OutputSV.ScrollToEnd();
-                }
+                string s = "";
+
+                PsexecHelper psexec = new PsexecHelper();
+                s = await psexec.RegCommand();
 
                 watch.Stop();
                 OutputTB.Inlines.Add(AddString(string.Format("function takes {0} ms.\n", watch.ElapsedMilliseconds)));
+                OutputTB.Inlines.Add(AddString(s));
                 OutputSV.ScrollToEnd();
             }
             catch (Exception exp)
