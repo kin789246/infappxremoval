@@ -95,7 +95,7 @@
             <Label Content="OUTPUT" FontSize="11" Padding="1" Margin="5,0"/>
             <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Margin="5,0,5,5">
                 <ScrollViewer Name="OutputSV" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <TextBlock Name="OutputTB" TextWrapping="Wrap"/>
+                    <TextBlock Name="OutputTB" TextWrapping="Wrap" />
                 </ScrollViewer>
             </Border>
         </Grid>

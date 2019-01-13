@@ -85,6 +85,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="PnpDeviceData.cs" />
+    <Compile Include="PsexecHelper.cs" />
     <Compile Include="Win32PnpSignedDriverData.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
