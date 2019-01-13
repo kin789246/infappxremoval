@@ -154,7 +154,7 @@ namespace infappxremoval
 
         // Get-CimInstance win32_pnpsigneddriver | where infname -eq 'oem10.inf'
 
-        public Task<List<Win32PnpSignedDriverData>> GetHwIdofOemInf()
+        public Task<List<Win32PnpSignedDriverData>> GetWin32PnpSignedDriverData()
         {
             List<Win32PnpSignedDriverData> wList = new List<Win32PnpSignedDriverData>();
             //string script = "Get-CimInstance win32_pnpsigneddriver | where infname -eq '" + oem + "'";
@@ -190,9 +190,9 @@ namespace infappxremoval
                         {
                             w32d.InfName = member.Value.ToString();
                         }
-                        if (member.Name == "DeviceName" && member.Value != null)
+                        if (member.Name == "Description" && member.Value != null)
                         {
-                            w32d.DeviceName = member.Value.ToString();
+                            w32d.Description = member.Value.ToString();
                         }
                     }
                 }

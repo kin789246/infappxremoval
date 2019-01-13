@@ -47,7 +47,7 @@ namespace infappxremoval
             OutputTB.Inlines.Add(AddString("Initial data..."));
 
             PowershellHelper psh = new PowershellHelper();
-            hwIdOemInfList = await psh.GetHwIdofOemInf();
+            hwIdOemInfList = await psh.GetWin32PnpSignedDriverData();
 
             OutputTB.Inlines.Add(AddString("Done\n"));
             await LoadInfData();
@@ -76,9 +76,35 @@ namespace infappxremoval
             installedInfList = await puh.EnumDrivers();
 
             GetHwId(installedInfList);
+            //ProcessInfListOrder(installedInfList);
 
             OutputTB.Inlines.Add(AddString("Done\n"));
             OutputSV.ScrollToEnd();
+        }
+
+        private void ProcessInfListOrder(List<PnputilData> list)
+        {
+            try
+            {
+                List<PnputilData> temp = new List<PnputilData>();
+                for(int i=0; i<list.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(list[i].Description))
+                    {
+                        if (list[i].Description.ToLower().Contains("graphics"))
+                        {
+                            temp.Add(list[i]);
+                            list.RemoveAt(i);
+                        }
+                    }
+                }
+                list.AddRange(temp);
+            }
+            catch (Exception exp)
+            {
+                OutputTB.Inlines.Add(AddString(exp.Message + "\n"));
+                OutputSV.ScrollToEnd();
+            }
         }
 
         private void GetHwId(List<PnputilData> list)
@@ -102,14 +128,14 @@ namespace infappxremoval
                         {
                             list[i].HardwareId += " | ";
                         }
-                        if (!string.IsNullOrEmpty(list[i].DeviceName))
+                        if (!string.IsNullOrEmpty(list[i].Description))
                         {
-                            list[i].DeviceName += " | ";
+                            list[i].Description += " | ";
                         }
 
                         list[i].FriendlyName += item.FriendlyName;
                         list[i].HardwareId += item.HardwareId;
-                        list[i].DeviceName += item.DeviceName;
+                        list[i].Description += item.Description;
                     }
                 }
             }
@@ -121,6 +147,9 @@ namespace infappxremoval
             {
                 return;
             }
+
+            ProcessInfListOrder(datas);
+
             foreach (var pnpdata in datas)
             {
                 Grid grid = new Grid();
@@ -195,10 +224,10 @@ namespace infappxremoval
                 //save oem list before remove
                 List<string> savedList = SaveList();
 
-                if (oem.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
-                {
-                    await ProcessIntelHdAudioController();
-                }
+                //if (oem.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
+                //{
+                //    await ProcessIntelHdAudioController();
+                //}
 
                 string s = string.Empty;
                 List<string> hwIds = GetHwId(btn.Tag.ToString());
@@ -208,21 +237,30 @@ namespace infappxremoval
                     {
                         s = await dh.RemoveDriver(item);
                         OutputTB.Inlines.Add(AddString(s));
+                        OutputSV.ScrollToEnd();
                     }
                 }
                 s = await helper.DeleteDriver(oem);
                 OutputTB.Inlines.Add(AddString(s));
-                //if (s.Contains("deleted successfully"))
-                //{
-                //    btn.IsEnabled = false;
-                //}
                 OutputSV.ScrollToEnd();
 
-                //await dh.Rescan();
-
+                if (s.ToLower().Contains("failed") && oem.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowHdAudioInfo();
+                }
+                
                 await LoadInfData();
                 GoSearchInf(savedList);
             }
+        }
+
+        private void ShowHdAudioInfo()
+        {
+            string message = "Intel HD Audio Extension INF may be used by High Definition Audio Controller"
+                              + " on platforms support SGPC such as KBL, WHL... etc.\n"
+                              + "Please uninstall High Definition Audio Controller in Device Manager first.";
+            string caption = "Information";
+            MessageBox.Show(message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private List<string> SaveList()
@@ -641,21 +679,28 @@ namespace infappxremoval
                     OutputTB.Inlines.Add(AddString("Wait for uninstalling " + item + " ...\n"));
 
                     //ask if remove Intel High Definition Audio Controller
-                    if (item.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
-                    {
-                        await ProcessIntelHdAudioController();
-                    }
+                    //if (item.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
+                    //{
+                    //    await ProcessIntelHdAudioController();
+                    //}
                     string s = string.Empty;
 
                     List<string> hwIds = GetHwId(item);
                     foreach (var hwId in hwIds)
                     {
-                        s += await dh.RemoveDriver(hwId);
+                        s = await dh.RemoveDriver(hwId);
+                        OutputTB.Inlines.Add(AddString(s));
+                        OutputSV.ScrollToEnd();
                     }
-                    s += await helper.DeleteDriver(item);
+                    s = await helper.DeleteDriver(item);
 
                     OutputTB.Inlines.Add(AddString(s));
                     OutputSV.ScrollToEnd();
+
+                    if (s.ToLower().Contains("failed") && item.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
+                    {
+                        ShowHdAudioInfo();
+                    }
                 }
 
                 //await dh.Rescan();
@@ -667,11 +712,11 @@ namespace infappxremoval
 
         private async Task ProcessIntelHdAudioController()
         {
-            if (MessageBox.Show("Intel HD Audio Extension INF may be used by High Definition Audio Controller"
+            string message = "Intel HD Audio Extension INF may be used by High Definition Audio Controller"
                 + " on platforms support SGPC such as KBL, WHL... etc.\n"
-                + " Do you want to uninstall High Definition Audio Controller?",
-                "Question", MessageBoxButton.YesNo,
-                MessageBoxImage.Warning) == MessageBoxResult.No)
+                + " Do you want to uninstall High Definition Audio Controller?";
+
+            if (MessageBox.Show( message, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             {
                 //do no stuff
                 return;
@@ -684,7 +729,7 @@ namespace infappxremoval
                 {
                     foreach (var item in hwIdOemInfList)
                     {
-                        if (item.DeviceName.ToLower().Contains("Audio Controller".ToLower()) 
+                        if (item.Description.ToLower().Contains("Audio Controller".ToLower()) 
                             && item.HardwareId.ToLower().Contains("PCI\\VEN_8086".ToLower()))
                         {
                             DevconHelper dh = new DevconHelper();
@@ -721,7 +766,7 @@ namespace infappxremoval
                 var watch = Stopwatch.StartNew();
 
                 PowershellHelper psh = new PowershellHelper();
-                List<Win32PnpSignedDriverData> w32d = await psh.GetHwIdofOemInf();
+                List<Win32PnpSignedDriverData> w32d = await psh.GetWin32PnpSignedDriverData();
                 foreach (var item in w32d)
                 {
                     OutputTB.Inlines.Add(AddString(item.PrintProperty() + "\n", Colors.Black, Colors.White));
