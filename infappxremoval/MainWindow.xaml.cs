@@ -32,7 +32,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.5b by Kin";
+            VerLabel.Content = "v0.6b by Kin";
         }
 
         private async void InitAll()
@@ -87,6 +87,7 @@ namespace infappxremoval
             try
             {
                 List<PnputilData> temp = new List<PnputilData>();
+                List<PnputilData> tempIsst = new List<PnputilData>();
                 for(int i=0; i<list.Count; i++)
                 {
                     if (!string.IsNullOrEmpty(list[i].Description))
@@ -96,9 +97,15 @@ namespace infappxremoval
                             temp.Add(list[i]);
                             list.RemoveAt(i);
                         }
+                        if (list[i].Description.ToLower().Contains("audio controller"))
+                        {
+                            tempIsst.Add(list[i]);
+                            list.RemoveAt(i);
+                        }
                     }
                 }
                 list.AddRange(temp);
+                list.AddRange(tempIsst);
             }
             catch (Exception exp)
             {
