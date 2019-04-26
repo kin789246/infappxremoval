@@ -5,19 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:infappxremoval"
         mc:Ignorable="d"
-        Title="Inf Appx Removal" Height="720" Width="1280"
+        Title="Inf Appx Removal" Height="680" Width="1000"
         Left="50" Top="10">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="3*"/>
-            <RowDefinition Height="3*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="2*"/>
             <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="80"/>
             </Grid.ColumnDefinitions>
             
             <StackPanel Orientation="Horizontal">
@@ -32,8 +32,8 @@
 
                 <Button Content="SCAN ALL" Margin="5" Padding="2" Name="RefreshBtn" Click="RefreshBtn_Click"/>
 
-                <Button Content="LOAD INF LIST" Margin="5" Padding="2" Name="LoadListBtn" Click="LoadListBtn_Click" />
-                <Button Content="UNINSTALL ALL INF" Margin="5" Padding="2" Name="UninstallAllBtn" Click="UninstallAllBtn_Click"/>
+                <Button Content="LOAD LIST" Margin="5" Padding="2" Name="LoadListBtn" Click="LoadListBtn_Click" />
+                <Button Content="UNINSTALL ALL" Margin="5" Padding="2" Name="UninstallAllBtn" Click="UninstallAllBtn_Click"/>
 
                 <Button Content="DEBUG" Margin="5" Padding="2" Name="DebugBtn" Click="DebugBtn_Click" Visibility="Collapsed"/>
             </StackPanel>

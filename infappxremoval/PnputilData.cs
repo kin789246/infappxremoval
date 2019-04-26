@@ -19,9 +19,9 @@ namespace infappxremoval
         private string orgClassName;
         private string driverVersion;
         private string signerName;
-        private string friendlyName;
-        private string description;
-        private string hardwareId;
+        private List<string> friendlyNames;
+        private List<string> descriptions;
+        private List<string> hardwareIds;
 
         public string PublishedName { get => publishedName; set => publishedName = value; }
         public string OriginalName { get => originalName; set => originalName = value; }
@@ -30,9 +30,9 @@ namespace infappxremoval
         public string OrgClassName { get => orgClassName; set => orgClassName = value; }
         public string DriverVersion { get => driverVersion; set => driverVersion = value; }
         public string SignerName { get => signerName; set => signerName = value; }
-        public string FriendlyName { get => friendlyName; set => friendlyName = value; }
-        public string Description { get => description; set => description = value; }
-        public string HardwareId { get => hardwareId; set => hardwareId = value; }
+        public List<string> FriendlyNames { get => friendlyNames; set => friendlyNames = value; }
+        public List<string> Descriptions { get => descriptions; set => descriptions = value; }
+        public List<string> HardwareIds { get => hardwareIds; set => hardwareIds = value; }
 
         public PnputilData()
         {
@@ -43,21 +43,27 @@ namespace infappxremoval
             orgClassName = string.Empty;
             driverVersion = string.Empty;
             signerName = string.Empty;
-            friendlyName = string.Empty;
-            description = string.Empty;
-            hardwareId = string.Empty;
+            friendlyNames = new List<string>();
+            descriptions = new List<string>();
+            hardwareIds = new List<string>();
         }
 
         public string ToListBoxString()
         {
             string s = string.Empty;
-            if (string.IsNullOrEmpty(friendlyName))
+            if (friendlyNames.Count == 0)
             {
-                s = description;
+                foreach (var des in descriptions)
+                {
+                    s = string.IsNullOrEmpty(s) ? des : string.Join(" | ", s, des);
+                }
             }
             else
             {
-                s = friendlyName;
+                foreach (var fri in friendlyNames)
+                {
+                    s = string.IsNullOrEmpty(s) ? fri : string.Join(" | ", s, fri);
+                }
             }
 
             return s + "\n" +

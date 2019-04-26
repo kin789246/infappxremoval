@@ -14,6 +14,7 @@ namespace infappxremoval
             Init,
             EnumDrv,
             DelDrv,
+            DelAndUninstall
         }
 
         private StringBuilder outputlog;
@@ -62,6 +63,7 @@ namespace infappxremoval
             startInfo.Arguments = "/delete-driver " + oemNumber;
             Process deleteDriver = new Process();
             deleteDriver.StartInfo = startInfo;
+
             return Task.Run(() => 
             {
                 ExecuteProc(deleteDriver);
@@ -85,6 +87,22 @@ namespace infappxremoval
                     ExecuteProc(deleteDriver);
                 }
 
+                return outputlog.ToString();
+            });
+        }
+
+        public Task<string> DeleteAndUninstallDriver(string oemNumber)
+        {
+            outputlog.Clear();
+            outputlog.Append("pnputil.exe /delete-driver " + oemNumber + " /uninstall").AppendLine();
+            currentAction = PnputilAction.DelAndUninstall;
+            startInfo.Arguments = "/delete-driver " + oemNumber + " /uninstall";
+            Process deleteDriver = new Process();
+            deleteDriver.StartInfo = startInfo;
+
+            return Task.Run(() =>
+            {
+                ExecuteProc(deleteDriver);
                 return outputlog.ToString();
             });
         }
