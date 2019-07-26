@@ -34,7 +34,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.7b by Kin";
+            VerLabel.Content = "v0.8b by Kin";
         }
 
         private async void InitAll()
@@ -46,15 +46,17 @@ namespace infappxremoval
             SwcInfLB.Items.Clear();
             AppxNameTB.Text = "";
             VendorNameTB.Text = "";
+            DisButtons();
             OutputTB.Inlines.Add(AddString("Initial data..."));
 
             PowershellHelper psh = new PowershellHelper();
             hwIdOemInfList = await psh.GetWin32PnpSignedDriverData();
 
             OutputTB.Inlines.Add(AddString("Done\n"));
+            
             await LoadInfData();
             ShowInfListItem(installedInfList);
-
+            
             string s = "Input keyword to search Appx Packages";
             Label lb1 = new Label();
             lb1.Content = s;
@@ -63,7 +65,8 @@ namespace infappxremoval
             Label lb2 = new Label();
             lb2.Content = s;
             AppxProvisionedPackageLB.Items.Add(lb2);
-
+            
+            EnButtons();
             //List<string> nameList = new List<string>();
             //nameList.Add("intel");
             //nameList.Add("hpaudio");
@@ -267,6 +270,7 @@ namespace infappxremoval
 
                 string oem = btn.Tag.ToString();
 
+                DisButtons();
                 //save oem list before remove
                 List<PnputilData> savedList = SaveListToDataList();
                 
@@ -327,27 +331,11 @@ namespace infappxremoval
                         OutputSV.ScrollToEnd();
                     }
                 }
-                //List<string> hwIds = GetHwId(btn.Tag.ToString());
-                //if (hwIds.Count != 0)
-                //{
-                //    foreach (var item in hwIds)
-                //    {
-                //        s = await dh.RemoveHardwareId(item);
-                //        OutputTB.Inlines.Add(AddString(s));
-                //        OutputSV.ScrollToEnd();
-                //    }
-                //}
-                //s = await helper.DeleteDriver(oem);
-                //OutputTB.Inlines.Add(AddString(s));
-                //OutputSV.ScrollToEnd();
-
-                //if (s.ToLower().Contains("failed") && oem.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
-                //{
-                //    ShowHdAudioInfo();
-                //}
                 
                 await LoadInfData();
                 GoSearchInf(savedList);
+
+                EnButtons();
             }
         }
 
@@ -419,7 +407,9 @@ namespace infappxremoval
             if (!string.IsNullOrEmpty(AppxNameTB.Text))
             {
                 OutputTB.Inlines.Clear();
+                DisButtons();
                 await GoSearchAppx(AppxNameTB.Text);
+                EnButtons();
             }
         }
 
@@ -431,7 +421,9 @@ namespace infappxremoval
                 {
 
                     OutputTB.Inlines.Clear();
+                    DisButtons();
                     await GoSearchAppx(AppxNameTB.Text);
+                    EnButtons();
                 }
             }
         }
@@ -551,16 +543,20 @@ namespace infappxremoval
                     if (listName[1] == "appx")
                     {
                         OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxPackage -Package " + listName[0] + "\n"));
+                        DisButtons();
                         log = await helper.RemoveAppxPackage(listName[0]);
                         OutputTB.Inlines.Add(AddString(log));
                         OutputSV.ScrollToEnd();
+                        EnButtons();
                     }
                     else if (listName[1] == "appxProvisioned")
                     {
                         OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxProvisionedPackage -Online -PackageName " + listName[0] + "\n"));
+                        DisButtons();
                         log = await helper.RemoveAppxProvisionedPackage(listName[0]);
                         OutputTB.Inlines.Add(AddString(log));
                         OutputSV.ScrollToEnd();
+                        EnButtons();
                     }
 
                     if (log.Contains("Successfully Removed"))
@@ -581,8 +577,10 @@ namespace infappxremoval
             if (!string.IsNullOrEmpty(VendorNameTB.Text))
             {
                 OutputTB.Inlines.Clear();
+                DisButtons();
                 await LoadInfData();
                 GoSearchInf(VendorNameTB.Text);
+                EnButtons();
             }
         }
 
@@ -593,8 +591,10 @@ namespace infappxremoval
                 if (!string.IsNullOrEmpty(VendorNameTB.Text))
                 {
                     OutputTB.Inlines.Clear();
+                    DisButtons();
                     await LoadInfData();
                     GoSearchInf(VendorNameTB.Text);
+                    EnButtons();
                 }
             }
         }
@@ -715,7 +715,9 @@ namespace infappxremoval
             foreach (var item in installedInfList)
             {
                 if (item.ProviderName.ToLower().Contains(text.ToLower()) 
-                    || item.DriverVersion.ToLower().Contains(text.ToLower()))
+                    || item.DriverVersion.ToLower().Contains(text.ToLower())
+                    || item.OriginalName.ToLower().Contains(text.ToLower())
+                    || item.PublishedName.ToLower().Contains(text.ToLower()))
                 {
                     infList.Add(item);
                 }
@@ -783,7 +785,9 @@ namespace infappxremoval
                 return;
             }
 
+            DisButtons();
             await LoadInfData();
+            EnButtons();
             GoSearchInf(infToRemove);
         }
 
@@ -803,6 +807,7 @@ namespace infappxremoval
                 OutputTB.Inlines.Add(AddString("Wait for uninstalling all inf listed...\n"));
                 OutputSV.ScrollToEnd();
 
+                DisButtons();
                 //save before removing
                 List<PnputilData> savedList = SaveListToDataList();
                 PnputilHelper helper = new PnputilHelper();
@@ -851,45 +856,11 @@ namespace infappxremoval
                         OutputSV.ScrollToEnd();
                     }
                 }
-                
-                //List<string> savedList = SaveList();
-
-                //if (savedList.Count == 0)
-                //{
-                //    OutputTB.Inlines.Add(AddString("No inf file to be uninstalled.\n"));
-                //    OutputSV.ScrollToEnd();
-                //    return;
-                //}
-
-                //PnputilHelper helper = new PnputilHelper();
-                //DevconHelper dh = new DevconHelper();
-
-                //foreach (var item in savedList)
-                //{
-                //    OutputTB.Inlines.Add(AddString("Wait for uninstalling " + item + " ...\n"));
-
-                //    string s = string.Empty;
-
-                //    List<string> hwIds = GetHwId(item);
-                //    foreach (var hwId in hwIds)
-                //    {
-                //        s = await dh.RemoveHardwareId(hwId);
-                //        OutputTB.Inlines.Add(AddString(s));
-                //        OutputSV.ScrollToEnd();
-                //    }
-                //    s = await helper.DeleteDriver(item);
-
-                //    OutputTB.Inlines.Add(AddString(s));
-                //    OutputSV.ScrollToEnd();
-
-                //    if (s.ToLower().Contains("failed") && item.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
-                //    {
-                //        ShowHdAudioInfo();
-                //    }
-                //}
 
                 await LoadInfData();
                 GoSearchInf(savedList);
+
+                EnButtons();
             }
         }
 
@@ -1014,6 +985,24 @@ namespace infappxremoval
             run.Background = new SolidColorBrush(Colors.White);
 
             return run;
+        }
+
+        private void DisButtons()
+        {
+            AppxSearchBtn.IsEnabled = false;
+            VendorSearchBtn.IsEnabled = false;
+            RefreshBtn.IsEnabled = false;
+            LoadListBtn.IsEnabled = false;
+            UninstallAllBtn.IsEnabled = false;
+        }
+
+        private void EnButtons()
+        {
+            AppxSearchBtn.IsEnabled = true;
+            VendorSearchBtn.IsEnabled = true;
+            RefreshBtn.IsEnabled = true;
+            LoadListBtn.IsEnabled = true;
+            UninstallAllBtn.IsEnabled = true;
         }
     }
 }

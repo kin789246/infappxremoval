@@ -37,7 +37,7 @@ namespace infappxremoval
         public PnputilData()
         {
             publishedName = string.Empty;
-            orgClassName = string.Empty;
+            originalName = string.Empty;
             providerName = string.Empty;
             className = InfClass.Base;
             orgClassName = string.Empty;

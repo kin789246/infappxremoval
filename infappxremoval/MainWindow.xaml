@@ -26,7 +26,7 @@
                 <Button Content="SEARCH" Margin="5" Padding="2" Name="AppxSearchBtn" Click="AppxSearchBtn_Click"/>
                 <RadioButton Content="Vendor" Name="VendorRadioBtn" VerticalAlignment="Center" IsChecked="True" Margin="2,0" Visibility="Collapsed"/>
                 <RadioButton Content="Version" Name="VersionRadioBtn" VerticalAlignment="Center" Margin="2,0" Visibility="Collapsed"/>
-                <Label Content="Vendor/Version"/>
+                <Label Content="Inf Keyword"/>
                 <TextBox Width="150" Margin="5" Name="VendorNameTB" KeyUp="VendorNameTB_KeyUp"/>
                 <Button Content="SEARCH" Margin="5" Padding="2" Name="VendorSearchBtn" Click="VendorSearchBtn_Click"/>
 
