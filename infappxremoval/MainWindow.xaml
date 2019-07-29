@@ -5,13 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:infappxremoval"
         mc:Ignorable="d"
-        Title="Inf Appx Removal" Height="680" Width="1000"
+        Title="Inf Appx Removal" Height="680" Width="1100"
         Left="50" Top="10">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="2*"/>
+            <RowDefinition Height="5" />
             <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
         <Grid>
@@ -33,8 +34,9 @@
                 <Button Content="SCAN ALL" Margin="5" Padding="2" Name="RefreshBtn" Click="RefreshBtn_Click"/>
 
                 <Button Content="LOAD LIST" Margin="5" Padding="2" Name="LoadListBtn" Click="LoadListBtn_Click" />
+                <Button Content="LOAD INFs" Margin="5" Padding="2" Name="LoadInfBtn" Click="LoadInfBtn_Click" />
                 <Button Content="UNINSTALL ALL" Margin="5" Padding="2" Name="UninstallAllBtn" Click="UninstallAllBtn_Click"/>
-
+                
                 <Button Content="DEBUG" Margin="5" Padding="2" Name="DebugBtn" Click="DebugBtn_Click" Visibility="Collapsed"/>
             </StackPanel>
             <Label Grid.Column="1" Content="by Kin v1.0b" Name="VerLabel" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
@@ -86,8 +88,8 @@
             <ListBox Name="ExtInfLB" Grid.Row="1" Grid.Column="2" BorderBrush="Black" BorderThickness="1" Margin="5,0" HorizontalContentAlignment="Stretch"/>
 
         </Grid>
-
-        <Grid Grid.Row="3" Margin="0,5,0,0">
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" />
+        <Grid Grid.Row="4" Margin="0,5,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20" />
                 <RowDefinition Height="*" />

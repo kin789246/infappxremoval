@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Text.RegularExpressions;
+using System.Management;
 
 namespace infappxremoval
 {
@@ -742,7 +742,7 @@ namespace infappxremoval
             List<string> infToRemove = new List<string>();
             var filePath = string.Empty;
 
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
 
             openFileDialog.InitialDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
             openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
@@ -994,6 +994,7 @@ namespace infappxremoval
             RefreshBtn.IsEnabled = false;
             LoadListBtn.IsEnabled = false;
             UninstallAllBtn.IsEnabled = false;
+            LoadInfBtn.IsEnabled = false;
         }
 
         private void EnButtons()
@@ -1003,6 +1004,33 @@ namespace infappxremoval
             RefreshBtn.IsEnabled = true;
             LoadListBtn.IsEnabled = true;
             UninstallAllBtn.IsEnabled = true;
+            LoadInfBtn.IsEnabled = true;
+        }
+
+        private void LoadInfBtn_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.FolderBrowserDialog folderDialog = new System.Windows.Forms.FolderBrowserDialog();
+            folderDialog.ShowNewFolderButton = false;
+            //folderDialog.RootFolder = Environment.SpecialFolder.Desktop;
+            folderDialog.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
+
+            System.Windows.Forms.DialogResult result = folderDialog.ShowDialog();
+
+            //</ Dialog >
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                //----< Selected Folder >----
+                //< Selected Path >
+                OutputTB.Inlines.Add(AddString(folderDialog.SelectedPath + "\n"));
+                OutputSV.ScrollToEnd();
+
+                List<string> filePaths = new List<string>(Directory.GetFiles(folderDialog.SelectedPath, "*.inf", SearchOption.AllDirectories));
+                foreach (var name in filePaths)
+                {
+                    OutputTB.Inlines.Add(AddString(System.IO.Path.GetFileName(name) + "\n"));
+                    OutputSV.ScrollToEnd();
+                }
+            }
         }
     }
 }
