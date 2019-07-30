@@ -7,12 +7,13 @@
         mc:Ignorable="d"
         Title="Inf Appx Removal" Height="680" Width="1100"
         Left="50" Top="10">
-    <Grid>
+    <Grid Name="WholeGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="3"/>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="5" />
+            <RowDefinition Height="3"/>
             <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
         <Grid>
@@ -67,7 +68,9 @@
                       HorizontalContentAlignment="Stretch"/>
         </Grid>
 
-        <Grid Grid.Row="2">
+        <GridSplitter Grid.Row="2" Height="3" HorizontalAlignment="Stretch" />
+        
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -88,8 +91,8 @@
             <ListBox Name="ExtInfLB" Grid.Row="1" Grid.Column="2" BorderBrush="Black" BorderThickness="1" Margin="5,0" HorizontalContentAlignment="Stretch"/>
 
         </Grid>
-        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" />
-        <Grid Grid.Row="4" Margin="0,5,0,0">
+        <GridSplitter Grid.Row="4" Height="3" HorizontalAlignment="Stretch" />
+        <Grid Grid.Row="5" Margin="0,5,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20" />
                 <RowDefinition Height="*" />

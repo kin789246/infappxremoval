@@ -9,6 +9,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Text.RegularExpressions;
 using System.Management;
+using System.Linq;
 
 namespace infappxremoval
 {
@@ -34,7 +35,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.8b by Kin";
+            VerLabel.Content = "v0.9b by Kin";
         }
 
         private async void InitAll()
@@ -46,7 +47,8 @@ namespace infappxremoval
             SwcInfLB.Items.Clear();
             AppxNameTB.Text = "";
             VendorNameTB.Text = "";
-            DisButtons();
+            //DisButtons();
+            WholeGrid.IsEnabled = false;
             OutputTB.Inlines.Add(AddString("Initial data..."));
 
             PowershellHelper psh = new PowershellHelper();
@@ -65,8 +67,9 @@ namespace infappxremoval
             Label lb2 = new Label();
             lb2.Content = s;
             AppxProvisionedPackageLB.Items.Add(lb2);
-            
-            EnButtons();
+
+            //EnButtons();
+            WholeGrid.IsEnabled = true;
             //List<string> nameList = new List<string>();
             //nameList.Add("intel");
             //nameList.Add("hpaudio");
@@ -270,7 +273,8 @@ namespace infappxremoval
 
                 string oem = btn.Tag.ToString();
 
-                DisButtons();
+                //DisButtons();
+                WholeGrid.IsEnabled = false;
                 //save oem list before remove
                 List<PnputilData> savedList = SaveListToDataList();
                 
@@ -335,7 +339,8 @@ namespace infappxremoval
                 await LoadInfData();
                 GoSearchInf(savedList);
 
-                EnButtons();
+                //EnButtons();
+                WholeGrid.IsEnabled = true;
             }
         }
 
@@ -407,9 +412,11 @@ namespace infappxremoval
             if (!string.IsNullOrEmpty(AppxNameTB.Text))
             {
                 OutputTB.Inlines.Clear();
-                DisButtons();
+                //DisButtons();
+                WholeGrid.IsEnabled = false;
                 await GoSearchAppx(AppxNameTB.Text);
-                EnButtons();
+                //EnButtons();
+                WholeGrid.IsEnabled = true;
             }
         }
 
@@ -421,9 +428,10 @@ namespace infappxremoval
                 {
 
                     OutputTB.Inlines.Clear();
-                    DisButtons();
+                    //DisButtons();
+                    WholeGrid.IsEnabled = false;
                     await GoSearchAppx(AppxNameTB.Text);
-                    EnButtons();
+                    WholeGrid.IsEnabled = true;
                 }
             }
         }
@@ -543,20 +551,24 @@ namespace infappxremoval
                     if (listName[1] == "appx")
                     {
                         OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxPackage -Package " + listName[0] + "\n"));
-                        DisButtons();
+                        //DisButtons();
+                        WholeGrid.IsEnabled = false;
                         log = await helper.RemoveAppxPackage(listName[0]);
                         OutputTB.Inlines.Add(AddString(log));
                         OutputSV.ScrollToEnd();
-                        EnButtons();
+                        //EnButtons();
+                        WholeGrid.IsEnabled = true;
                     }
                     else if (listName[1] == "appxProvisioned")
                     {
                         OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxProvisionedPackage -Online -PackageName " + listName[0] + "\n"));
-                        DisButtons();
+                        //DisButtons();
+                        WholeGrid.IsEnabled = false;
                         log = await helper.RemoveAppxProvisionedPackage(listName[0]);
                         OutputTB.Inlines.Add(AddString(log));
                         OutputSV.ScrollToEnd();
-                        EnButtons();
+                        //EnButtons();
+                        WholeGrid.IsEnabled = true;
                     }
 
                     if (log.Contains("Successfully Removed"))
@@ -577,10 +589,12 @@ namespace infappxremoval
             if (!string.IsNullOrEmpty(VendorNameTB.Text))
             {
                 OutputTB.Inlines.Clear();
-                DisButtons();
+                //DisButtons();
+                WholeGrid.IsEnabled = false;
                 await LoadInfData();
                 GoSearchInf(VendorNameTB.Text);
-                EnButtons();
+                //EnButtons();
+                WholeGrid.IsEnabled = true;
             }
         }
 
@@ -591,10 +605,12 @@ namespace infappxremoval
                 if (!string.IsNullOrEmpty(VendorNameTB.Text))
                 {
                     OutputTB.Inlines.Clear();
-                    DisButtons();
+                    //DisButtons();
+                    WholeGrid.IsEnabled = false;
                     await LoadInfData();
                     GoSearchInf(VendorNameTB.Text);
-                    EnButtons();
+                    //EnButtons();
+                    WholeGrid.IsEnabled = true;
                 }
             }
         }
@@ -610,7 +626,7 @@ namespace infappxremoval
             SwcInfLB.Items.Clear();
             List<PnputilData> infList = new List<PnputilData>();
             
-            foreach (var name in nameList)
+            foreach (var name in nameList.Distinct())
             {
                 if (installedInfList.Count == 0)
                 {
@@ -785,9 +801,11 @@ namespace infappxremoval
                 return;
             }
 
-            DisButtons();
+            //DisButtons();
+            WholeGrid.IsEnabled = false;
             await LoadInfData();
-            EnButtons();
+            //EnButtons();
+            WholeGrid.IsEnabled = true;
             GoSearchInf(infToRemove);
         }
 
@@ -807,7 +825,8 @@ namespace infappxremoval
                 OutputTB.Inlines.Add(AddString("Wait for uninstalling all inf listed...\n"));
                 OutputSV.ScrollToEnd();
 
-                DisButtons();
+                //DisButtons();
+                WholeGrid.IsEnabled = false;
                 //save before removing
                 List<PnputilData> savedList = SaveListToDataList();
                 PnputilHelper helper = new PnputilHelper();
@@ -860,7 +879,8 @@ namespace infappxremoval
                 await LoadInfData();
                 GoSearchInf(savedList);
 
-                EnButtons();
+                //EnButtons();
+                WholeGrid.IsEnabled = true;
             }
         }
 
@@ -1021,15 +1041,20 @@ namespace infappxremoval
             {
                 //----< Selected Folder >----
                 //< Selected Path >
-                OutputTB.Inlines.Add(AddString(folderDialog.SelectedPath + "\n"));
+                WholeGrid.IsEnabled = false;
+                OutputTB.Inlines.Add(AddString("Search inf files in " + folderDialog.SelectedPath + "\n"));
                 OutputSV.ScrollToEnd();
 
-                List<string> filePaths = new List<string>(Directory.GetFiles(folderDialog.SelectedPath, "*.inf", SearchOption.AllDirectories));
-                foreach (var name in filePaths)
+                var infNames = Directory.GetFiles(folderDialog.SelectedPath, "*.inf", SearchOption.AllDirectories);
+                List<string> infs = new List<string>();
+                foreach (var name in infNames)
                 {
-                    OutputTB.Inlines.Add(AddString(System.IO.Path.GetFileName(name) + "\n"));
-                    OutputSV.ScrollToEnd();
+                    //    OutputTB.Inlines.Add(AddString(System.IO.Path.GetFileName(name) + "\n"));
+                    //    OutputSV.ScrollToEnd();
+                    infs.Add(System.IO.Path.GetFileName(name));
                 }
+                GoSearchInf(infs);
+                WholeGrid.IsEnabled = true;
             }
         }
     }
