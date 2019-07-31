@@ -30,8 +30,9 @@ namespace infappxremoval
             List<string> packageFullName = new List<string>();
             outputlog.Clear();
             string tempName = "*" + name + "*";
-            //string script = "Get-AppxPackage -Name " + tempName;
-            ps = PowerShell.Create().AddCommand("Get-AppxPackage").AddParameter("Name", tempName);
+            //string script = "Get-AppxPackage | where PackagefullName -Like " + tempName;
+            ps = PowerShell.Create().AddCommand("Get-AppxPackage").AddCommand("where-object")
+                .AddArgument("packagefullname").AddParameter("like").AddArgument(tempName);
             ps.Runspace = runspace;
             return Task.Run(() =>
             {

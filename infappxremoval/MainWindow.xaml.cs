@@ -511,10 +511,15 @@ namespace infappxremoval
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 lb.Items.Add(grid);
-                Label lb1 = new Label();
-                lb1.Content = item;
-                grid.Children.Add(lb1);
-                Grid.SetColumn(lb1, 1);
+                TextBlock tb = new TextBlock();
+                tb.Margin = new Thickness(3, 0, 3, 0);
+                tb.Text = item;
+                grid.Children.Add(tb);
+                Grid.SetColumn(tb, 1);
+                //Label lb1 = new Label();
+                //lb1.Content = item;
+                //grid.Children.Add(lb1);
+                //Grid.SetColumn(lb1, 1);
 
                 if (!item.Contains("Can not find"))
                 {
