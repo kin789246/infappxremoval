@@ -278,7 +278,7 @@ namespace infappxremoval
                 //save oem list before remove
                 List<PnputilData> savedList = SaveListToDataList();
                 
-                string s = string.Empty;
+                string s;
                 PnputilData toRemove = null;
                 foreach (var item in savedList)
                 {
@@ -516,10 +516,6 @@ namespace infappxremoval
                 tb.Text = item;
                 grid.Children.Add(tb);
                 Grid.SetColumn(tb, 1);
-                //Label lb1 = new Label();
-                //lb1.Content = item;
-                //grid.Children.Add(lb1);
-                //Grid.SetColumn(lb1, 1);
 
                 if (!item.Contains("Can not find"))
                 {
@@ -537,6 +533,7 @@ namespace infappxremoval
                         s += ":appxProvisioned";
                     }
                     btn.Tag = s;
+                    grid.Tag = s;
                     btn.Click += AppxUninstBtn_Click;
                     grid.Children.Add(btn);
                 }
@@ -548,44 +545,7 @@ namespace infappxremoval
             Button btn = sender as Button;
             if (btn != null)
             {
-                try
-                {
-                    string[] listName = btn.Tag.ToString().Split(new char[] { ':' }, 2);
-                    string log = "";
-                    PowershellHelper helper = new PowershellHelper();
-                    if (listName[1] == "appx")
-                    {
-                        OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxPackage -Package " + listName[0] + "\n"));
-                        //DisButtons();
-                        WholeGrid.IsEnabled = false;
-                        log = await helper.RemoveAppxPackage(listName[0]);
-                        OutputTB.Inlines.Add(AddString(log));
-                        OutputSV.ScrollToEnd();
-                        //EnButtons();
-                        WholeGrid.IsEnabled = true;
-                    }
-                    else if (listName[1] == "appxProvisioned")
-                    {
-                        OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxProvisionedPackage -Online -PackageName " + listName[0] + "\n"));
-                        //DisButtons();
-                        WholeGrid.IsEnabled = false;
-                        log = await helper.RemoveAppxProvisionedPackage(listName[0]);
-                        OutputTB.Inlines.Add(AddString(log));
-                        OutputSV.ScrollToEnd();
-                        //EnButtons();
-                        WholeGrid.IsEnabled = true;
-                    }
-
-                    if (log.Contains("Successfully Removed"))
-                    {
-                        btn.IsEnabled = false;
-                    }
-                }
-                catch (Exception exp)
-                {
-                    OutputTB.Inlines.Add(AddString(exp.Message + "\n", Colors.White, Colors.Red));
-                    OutputSV.ScrollToEnd();
-                }
+                await UninstallAppx(btn.Tag.ToString());
             }
         }
 
@@ -837,7 +797,7 @@ namespace infappxremoval
                 PnputilHelper helper = new PnputilHelper();
                 DevconHelper dh = new DevconHelper();
 
-                string s = string.Empty;
+                string s;
                 foreach (var item in savedList)
                 {
                     string description = string.Empty;
@@ -884,8 +844,52 @@ namespace infappxremoval
                 await LoadInfData();
                 GoSearchInf(savedList);
 
+                //remove Appx
+                List<string> appxNames = new List<string>();
+                appxNames.AddRange(GetGridTag(AppxPackageLB.Items));
+                appxNames.AddRange(GetGridTag(AppxProvisionedPackageLB.Items));
+                foreach (var name in appxNames)
+                {
+                    await UninstallAppx(name);
+                }
+                
                 //EnButtons();
                 WholeGrid.IsEnabled = true;
+            }
+        }
+
+        private async Task UninstallAppx(string appxName)
+        {
+            try
+            {
+                string[] listName = appxName.Split(new char[] { ':' }, 2);
+                string log = "";
+                PowershellHelper helper = new PowershellHelper();
+                if (listName[1] == "appx")
+                {
+                    OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxPackage -Package " + listName[0] + "\n"));
+                    WholeGrid.IsEnabled = false;
+                    log = await helper.RemoveAppxPackage(listName[0]);
+                    OutputTB.Inlines.Add(AddString(log));
+                    OutputSV.ScrollToEnd();
+                    WholeGrid.IsEnabled = true;
+                }
+                else if (listName[1] == "appxProvisioned")
+                {
+                    OutputTB.Inlines.Add(AddString("wait...\nRemove-AppxProvisionedPackage -Online -PackageName " + listName[0] + "\n"));
+                    WholeGrid.IsEnabled = false;
+                    log = await helper.RemoveAppxProvisionedPackage(listName[0]);
+                    OutputTB.Inlines.Add(AddString(log));
+                    OutputSV.ScrollToEnd();
+                    WholeGrid.IsEnabled = true;
+                }
+
+                await GoSearchAppx(listName[0]);
+            }
+            catch (Exception exp)
+            {
+                OutputTB.Inlines.Add(AddString(exp.Message + "\n", Colors.White, Colors.Red));
+                OutputSV.ScrollToEnd();
             }
         }
 
@@ -1001,7 +1005,7 @@ namespace infappxremoval
             LoadInfBtn.IsEnabled = true;
         }
 
-        private void LoadInfBtn_Click(object sender, RoutedEventArgs e)
+        private async void LoadInfBtn_Click(object sender, RoutedEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog folderDialog = new System.Windows.Forms.FolderBrowserDialog();
             folderDialog.ShowNewFolderButton = false;
@@ -1014,7 +1018,7 @@ namespace infappxremoval
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 //----< Selected Folder >----
-                //< Selected Path >
+                //load inf list
                 WholeGrid.IsEnabled = false;
                 OutputTB.Inlines.Add(AddString("Search inf files in " + folderDialog.SelectedPath + "\n"));
                 OutputSV.ScrollToEnd();
@@ -1028,7 +1032,49 @@ namespace infappxremoval
                     infs.Add(System.IO.Path.GetFileName(name));
                 }
                 GoSearchInf(infs);
+
+                //load appx names from AUMIDs.txt
+                var aumidss = Directory.GetFiles(folderDialog.SelectedPath, "AUMIDs.txt", SearchOption.AllDirectories);
+                if (aumidss.Length != 0)
+                {
+                    List<string> appxNameList = new List<string>();
+                    foreach (var path in aumidss)
+                    {
+                        await ParseAppxAumid(path, appxNameList);
+                    }
+                    await GoSearchAppx(appxNameList.Distinct().ToList());
+                }
+
                 WholeGrid.IsEnabled = true;
+            }
+        }
+
+        private async Task ParseAppxAumid(string path, List<string> nameList)
+        {
+            try
+            {
+                string rgx = @"(\.\w+_)";
+                using (StreamReader sr = new StreamReader(path))
+                {
+                    while (sr.Peek() > -1)
+                    {
+                        string line = await sr.ReadLineAsync();
+                        string[] substrings = Regex.Split(line, rgx);
+                        foreach (var s in substrings)
+                        {
+                            if (Regex.IsMatch(s,rgx))
+                            {
+                                nameList.Add(s.Substring(1, s.Length - 2));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception exp)
+            {
+                OutputTB.Inlines.Add(AddString(exp.Message, Colors.White, Colors.Red));
+                OutputSV.ScrollToEnd();
             }
         }
     }
