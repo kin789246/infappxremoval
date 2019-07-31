@@ -17,6 +17,7 @@ namespace infappxremoval
         private string providerName;
         private InfClass className;
         private string orgClassName;
+        private string classGuid;
         private string driverVersion;
         private string signerName;
         private List<string> friendlyNames;
@@ -28,6 +29,7 @@ namespace infappxremoval
         public string ProviderName { get => providerName; set => providerName = value; }
         public InfClass ClassName { get => className; set => className = value; }
         public string OrgClassName { get => orgClassName; set => orgClassName = value; }
+        public string ClassGuid { get => classGuid; set => classGuid = value; }
         public string DriverVersion { get => driverVersion; set => driverVersion = value; }
         public string SignerName { get => signerName; set => signerName = value; }
         public List<string> FriendlyNames { get => friendlyNames; set => friendlyNames = value; }
@@ -41,6 +43,7 @@ namespace infappxremoval
             providerName = string.Empty;
             className = InfClass.Base;
             orgClassName = string.Empty;
+            classGuid = string.Empty;
             driverVersion = string.Empty;
             signerName = string.Empty;
             friendlyNames = new List<string>();
@@ -105,3 +108,15 @@ namespace infappxremoval
 //Class GUID:         { 36fc9e60 - c465 - 11cf - 8056 - 444553540000}
 //Driver Version:     04/17/2018 2.0.148.24503
 //Signer Name:        Microsoft Windows Hardware Compatibility Publisher
+
+//Published Name:     oem5.inf
+//Original Name:      prnms006.inf
+//Provider Name:      Microsoft
+//Class Name:         Printers
+//Class GUID:         {4d36e979-e325-11ce-bfc1-08002be10318}
+//Class Version:      4.0
+//Driver Version:     05/28/2012 15.0.4128.4000
+//Signer Name:        Microsoft Windows Hardware Compatibility Publisher
+
+// "ExtensionGuid={e2f84ce7-8efa-411c-aa69-97454ca4cb57}"
+// "SoftwareComponenGuid={5c4c3332-344d-483c-8739-259e934c9cc8}"

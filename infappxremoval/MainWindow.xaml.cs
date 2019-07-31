@@ -635,7 +635,7 @@ namespace infappxremoval
                 }
 
                 //bool found = false;
-                Regex rgx = new Regex(@"oem\d*\.inf");
+                //Regex rgx = new Regex(@"oem\d*\.inf");
                 foreach (var item in installedInfList)
                 {
                     if (item.OriginalName.Equals(name, StringComparison.OrdinalIgnoreCase) 
@@ -937,46 +937,15 @@ namespace infappxremoval
         {
             try
             {
-                foreach (var data in installedInfList)
-                {
-                    string description = string.Empty;
-                    foreach (var des in data.Descriptions)
-                    {
-                        if (des.ToLower().Contains("svga"))
-                        {
-                            description = des;
-                        }
-                    }
-                    if (!string.IsNullOrEmpty(description))
-                    {
-                        DevconHelper dh = new DevconHelper();
-                        List<string> instanceIds = new List<string>();
-                        foreach (var hwid in data.HardwareIds)
-                        {
-                            instanceIds.AddRange(await dh.FindAll(hwid));
-                        }
+                puh = new PnputilHelper();
 
-                        foreach (var iid in instanceIds)
-                        {
-                            OutputTB.Inlines.Add(AddString(iid));
-                            OutputSV.ScrollToEnd();
-                        }
-                    }
-                }
+                OutputTB.Inlines.Add(AddString("Loading all of the installed inf information..."));
+                installedInfList = await puh.EnumDrivers();
 
-                //var watch = Stopwatch.StartNew();
+                //GetHwId(installedInfList);
 
-                //PowershellHelper psh = new PowershellHelper();
-                //List<Win32PnpSignedDriverData> w32d = await psh.GetWin32PnpSignedDriverData();
-                //foreach (var item in w32d)
-                //{
-                //    OutputTB.Inlines.Add(AddString(item.PrintProperty() + "\n", Colors.Black, Colors.White));
-                //    OutputSV.ScrollToEnd();
-                //}
-
-                //watch.Stop();
-                //OutputTB.Inlines.Add(AddString(string.Format("function takes {0} ms.\n", watch.ElapsedMilliseconds)));
-                //OutputSV.ScrollToEnd();
+                OutputTB.Inlines.Add(AddString("Done\n"));
+                OutputSV.ScrollToEnd();
             }
             catch (Exception exp)
             {

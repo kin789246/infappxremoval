@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace infappxremoval
 {
@@ -22,6 +23,15 @@ namespace infappxremoval
         private List<PnputilData> infList;
         private PnputilData tempData;
         private PnputilAction currentAction;
+        private string preLine;
+        // oem*.inf
+        private static Regex oemInfRgx = new Regex(@"oem\d+\.inf");
+        // *.inf
+        private static Regex infRgx = new Regex(@"\w+\.inf");
+        // xx/xx/xxxx xx.xx driver version
+        private static Regex drvVerRgx = new Regex(@"\d+/\d+/\d+\s+\w+");
+        private static string extGuid = "{e2f84ce7-8efa-411c-aa69-97454ca4cb57}";
+        private static string swcGuid = "{5c4c3332-344d-483c-8739-259e934c9cc8}";
 
         public PnputilHelper()
         {
@@ -50,6 +60,7 @@ namespace infappxremoval
 
             return Task.Run(() =>
             {
+                preLine = string.Empty;
                 ExecuteProc(enumDrivers);
                 return infList;
             });
@@ -133,20 +144,78 @@ namespace infappxremoval
             {
                 if (currentAction == PnputilAction.EnumDrv)
                 {
-                    if (e.Data.Contains("Microsoft PnP Utility")) // skip the first line
-                    {
-                        return;
-                    }
-                    ParsePnputilData(e.Data);
+                    //ParsePnputilData(e.Data);
+                    ParsePnputilDataMultiLang(e.Data);
                 }
                 else
                 {
-                    if (e.Data.Contains("Microsoft PnP Utility")) // skip the first line
+                    if (e.Data.Contains("Microsoft PnP")) // skip the first line
                     {
                         return;
                     }
                     outputlog.Append(e.Data).AppendLine();
                 }
+            }
+        }
+
+        private void ParsePnputilDataMultiLang(string data)
+        {
+            if (!data.Contains(":"))
+            {
+                return;
+            }
+            string[] temp = data.Split(new char[] { ':' }, 2);
+            temp[1] = temp[1].Trim();
+            if (oemInfRgx.IsMatch(temp[1]))
+            {
+                tempData = new PnputilData();
+                infList.Add(tempData);
+                tempData.PublishedName = temp[1];
+                preLine = "oeminf";
+            }
+            else if (infRgx.IsMatch(temp[1]))
+            {
+                tempData.OriginalName = temp[1];
+                preLine = "orginfname";
+            }
+            else if (preLine.Equals("orginfname"))
+            {
+                tempData.ProviderName = temp[1];
+                preLine = "provider name";
+            }
+            else if (preLine.Equals("provider name"))
+            {
+                tempData.OrgClassName = temp[1];
+                preLine = "original class name";
+            }
+            else if (preLine.Equals("original class name"))
+            {
+                PnputilData.InfClass infClass;
+                if (temp[1].Equals(extGuid))
+                {
+                    infClass = PnputilData.InfClass.Extensions;
+                }
+                else if (temp[1].Equals(swcGuid))
+                {
+                    infClass = PnputilData.InfClass.SoftwareComponets;
+                }
+                else
+                {
+                    infClass = PnputilData.InfClass.Base;
+                }
+                tempData.ClassName = infClass;
+                tempData.ClassGuid = temp[1];
+                preLine = "class guid";
+            }
+            else if (drvVerRgx.IsMatch(temp[1]))
+            {
+                tempData.DriverVersion = temp[1];
+                preLine = "driver version";
+            }
+            else if (preLine.Equals("driver version"))
+            {
+                tempData.SignerName = temp[1];
+                preLine = "signer name";
             }
         }
 
@@ -195,15 +264,5 @@ namespace infappxremoval
                 tempData.SignerName = temp[1];
             }
         }
-
-        //private List<Win32PnpSignedDriverData> GetHwId()
-        //{
-        //    List<Win32PnpSignedDriverData> list = new List<Win32PnpSignedDriverData>();
-
-        //    PowershellHelper ps = new PowershellHelper();
-        //    list = ps.GetHwIdofOemInf();
-
-        //    return list;
-        //}
     }
 }
