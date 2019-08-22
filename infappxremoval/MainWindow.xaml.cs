@@ -35,7 +35,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.9b by Kin";
+            VerLabel.Content = "v0.10b by Kin";
         }
 
         private async void InitAll()
@@ -414,7 +414,7 @@ namespace infappxremoval
                 OutputTB.Inlines.Clear();
                 //DisButtons();
                 WholeGrid.IsEnabled = false;
-                await GoSearchAppx(AppxNameTB.Text);
+                await GoSearchAppx(AppxNameTB.Text, "both");
                 //EnButtons();
                 WholeGrid.IsEnabled = true;
             }
@@ -430,7 +430,7 @@ namespace infappxremoval
                     OutputTB.Inlines.Clear();
                     //DisButtons();
                     WholeGrid.IsEnabled = false;
-                    await GoSearchAppx(AppxNameTB.Text);
+                    await GoSearchAppx(AppxNameTB.Text, "both");
                     WholeGrid.IsEnabled = true;
                 }
             }
@@ -468,33 +468,56 @@ namespace infappxremoval
             ShowAppxListItem(AppxProvisionedPackageLB, appxProvisionedLog);
         }
 
-        private async Task GoSearchAppx(string name)
+        private async Task GoSearchAppx(string name, string lb)
         {
             List<string> appxLog = new List<string>();
             List<string> appxProvisionedLog = new List<string>();
 
-            AppxPackageLB.Items.Clear();
-            AppxProvisionedPackageLB.Items.Clear();
-
             psh = new PowershellHelper();
-
             OutputTB.Inlines.Add(AddString("Loading " + name + " related Appx Package information..."));
-            appxLog.AddRange(await psh.GetAppxPackageFullName(name));
-            appxProvisionedLog.AddRange(await psh.GetAppxProvisionedPackageFullName(name));
-            OutputTB.Inlines.Add(AddString("Done\n"));
-            if (appxLog.Count == 0)
+
+            if (lb.Equals("both"))
             {
-                OutputTB.Inlines.Add(AddString("Can not find " + name + " related AppxPackage.\n"));
+                AppxPackageLB.Items.Clear();
+                AppxProvisionedPackageLB.Items.Clear();
+                appxLog.AddRange(await psh.GetAppxPackageFullName(name));
+                appxProvisionedLog.AddRange(await psh.GetAppxProvisionedPackageFullName(name));
+                OutputTB.Inlines.Add(AddString("Done\n"));
+                if (appxLog.Count == 0)
+                {
+                    OutputTB.Inlines.Add(AddString("Can not find " + name + " related AppxPackage.\n"));
+                }
+                if (appxProvisionedLog.Count == 0)
+                {
+                    OutputTB.Inlines.Add(AddString("Can not find " + name + " related AppxProvisionedPackage.\n"));
+                }
+                ShowAppxListItem(AppxPackageLB, appxLog);
+                ShowAppxListItem(AppxProvisionedPackageLB, appxProvisionedLog);
             }
-            if (appxProvisionedLog.Count == 0)
+            else if (lb.Equals("appx"))
             {
-                OutputTB.Inlines.Add(AddString("Can not find " + name + " related AppxProvisionedPackage.\n"));
+                AppxPackageLB.Items.Clear();
+                appxLog.AddRange(await psh.GetAppxPackageFullName(name));
+                OutputTB.Inlines.Add(AddString("Done\n"));
+                if (appxLog.Count == 0)
+                {
+                    OutputTB.Inlines.Add(AddString("Can not find " + name + " related AppxPackage.\n"));
+                }
+                ShowAppxListItem(AppxPackageLB, appxLog);
+            }
+            else if (lb.Equals("appxProvisioned"))
+            {
+                AppxProvisionedPackageLB.Items.Clear();
+                appxProvisionedLog.AddRange(await psh.GetAppxProvisionedPackageFullName(name));
+                OutputTB.Inlines.Add(AddString("Done\n"));
+                if (appxProvisionedLog.Count == 0)
+                {
+                    OutputTB.Inlines.Add(AddString("Can not find " + name + " related AppxProvisionedPackage.\n"));
+                }
+                ShowAppxListItem(AppxProvisionedPackageLB, appxProvisionedLog);
             }
 
             OutputSV.ScrollToEnd();
-
-            ShowAppxListItem(AppxPackageLB, appxLog);
-            ShowAppxListItem(AppxProvisionedPackageLB, appxProvisionedLog);
         }
 
         private void ShowAppxListItem(ListBox lb, List<string> log)
@@ -864,6 +887,7 @@ namespace infappxremoval
             {
                 string[] listName = appxName.Split(new char[] { ':' }, 2);
                 string log = "";
+                string lb = listName[1];
                 PowershellHelper helper = new PowershellHelper();
                 if (listName[1] == "appx")
                 {
@@ -883,8 +907,8 @@ namespace infappxremoval
                     OutputSV.ScrollToEnd();
                     WholeGrid.IsEnabled = true;
                 }
-
-                await GoSearchAppx(listName[0]);
+                
+                await GoSearchAppx(listName[0], lb);
             }
             catch (Exception exp)
             {
