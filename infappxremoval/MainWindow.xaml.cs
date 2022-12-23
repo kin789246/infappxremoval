@@ -21,7 +21,7 @@ namespace infappxremoval
         private PowershellHelper psh;
         private PnputilHelper puh;
         private List<PnputilData> installedInfList;
-
+        private string logFileName = Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location);
         private List<Win32PnpSignedDriverData> hwIdOemInfList;
         //get Intel HD audio extension inf
         private string intelHdAudioExtInf = string.Empty;
@@ -31,11 +31,16 @@ namespace infappxremoval
         public MainWindow()
         {
             InitializeComponent();
+            
+            var time = DateTime.Now;
+            logFileName += time.ToLocalTime().ToString("_yyyyMMdd-HHmmss") + ".log";
+            string logStart = "######### Start log at " + time.ToLocalTime() + " #########\n\n";
+            WriteLog(logFileName, logStart);
 
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.10b by Kin";
+            VerLabel.Content = "v0.12b by Kin";
         }
 
         private async void InitAll()
@@ -94,8 +99,12 @@ namespace infappxremoval
         {
             try
             {
-                PnputilData[] temp = new PnputilData[4];
-                
+                Dictionary<int, List<PnputilData>> arrange = new Dictionary<int, List<PnputilData>>();
+                for (int it=0; it<4; it++)
+                {
+                    arrange[it] = new List<PnputilData>();
+                }
+
                 int i = 0;
                 while(i < list.Count)
                 {
@@ -105,7 +114,7 @@ namespace infappxremoval
                         if (list[i].Descriptions[0].ToLower().Contains("graphics") 
                             && list[i].HardwareIds[0].ToLower().Contains("pci\\ven_8086"))
                         {
-                            temp[0] = list[i];
+                            arrange[0].Add(list[i]);
                             list.RemoveAt(i);
                             continue;
                         }
@@ -113,7 +122,7 @@ namespace infappxremoval
                         if (list[i].Descriptions[0].ToLower().Contains("smart sound technology")
                             && list[i].HardwareIds[0].ToLower().Contains("intelaudio\\ctlr"))
                         {
-                            temp[1] = list[i];
+                            arrange[1].Add(list[i]);
                             list.RemoveAt(i);
                             continue;
                         }
@@ -121,26 +130,33 @@ namespace infappxremoval
                         if (list[i].Descriptions[0].ToLower().Contains("smart sound technology")
                             && list[i].HardwareIds[0].ToLower().Contains("intelaudio\\dsp_ctlr"))
                         {
-                            temp[2] = list[i];
+                            arrange[2].Add(list[i]);
                             list.RemoveAt(i);
                             continue;
                         }
-                        //ISST Audio Controller
+                        //ISST Audio Controller or BUS
                         if (list[i].Descriptions[0].ToLower().Contains("smart sound technology")
                             && list[i].HardwareIds[0].ToLower().Contains("pci\\ven_8086"))
                         {
-                            temp[3] = list[i];
+                            arrange[3].Add(list[i]);
                             list.RemoveAt(i);
                             continue;
                         }
                     }
                     i++;
                 }
-                foreach (var item in temp)
+
+                for (int it = 0; it < 4; it++)
                 {
-                    if (item != null)
+                    if (arrange.ContainsKey(it))
                     {
-                        list.Add(item);
+                        if (arrange[it].Count != 0)
+                        {
+                            foreach (var item in arrange[it])
+                            {
+                                list.Add(item);
+                            }
+                        }
                     }
                 }
             }
@@ -228,6 +244,8 @@ namespace infappxremoval
                         break;
                 }
 
+                WriteInstalledInfToLog(pnpdata, datas.IndexOf(pnpdata));
+
                 //find Intel HD audio extension inf
                 if (pnpdata.OriginalName.ToLower().Contains("IntcDAudioExt".ToLower()) 
                     || pnpdata.OriginalName.ToLower().Contains("HdBusExt".ToLower()))
@@ -245,6 +263,13 @@ namespace infappxremoval
                     }
                 }
             }
+        }
+
+        private void WriteInstalledInfToLog(PnputilData data, int idx)
+        {
+            idx++;
+            string s = idx.ToString() + "\n" + data.ToListBoxString() + "\n";
+            WriteLog(logFileName, s);
         }
 
         private List<string> GetHwId(string oem)
@@ -269,8 +294,6 @@ namespace infappxremoval
             if (btn != null)
             {
                 PnputilHelper helper = new PnputilHelper();
-                DevconHelper dh = new DevconHelper();
-
                 string oem = btn.Tag.ToString();
 
                 //DisButtons();
@@ -278,7 +301,6 @@ namespace infappxremoval
                 //save oem list before remove
                 List<PnputilData> savedList = SaveListToDataList();
                 
-                string s;
                 PnputilData toRemove = null;
                 foreach (var item in savedList)
                 {
@@ -291,49 +313,8 @@ namespace infappxremoval
 
                 if (toRemove != null)
                 {
-                    string description = string.Empty;
-                    foreach (var des in toRemove.Descriptions)
-                    {
-                        if (des.ToLower().Contains("audio controller"))
-                        {
-                            description = des;
-                        }
-                    }
-
                     OutputTB.Inlines.Add(AddString("wait for uninstalling " + toRemove.OriginalName + "\n"));
-
-                    //inf except ISST high definition audio controller
-                    if (string.IsNullOrEmpty(description))
-                    {
-                        List<string> instanceIds = new List<string>();
-                        foreach (var hwid in toRemove.HardwareIds)
-                        {
-                            instanceIds.AddRange(await dh.FindAll(hwid));
-                        }
-
-                        foreach (var id in instanceIds)
-                        {
-                            OutputTB.Inlines.Add(AddString("Removing " + toRemove.OriginalName + " " + id + "\n"));
-                            s = await dh.RemoveInstanceId(id);
-                            OutputTB.Inlines.Add(AddString(s));
-                            OutputSV.ScrollToEnd();
-                        }
-
-                        s = await helper.DeleteDriver(oem);
-                        OutputTB.Inlines.Add(AddString(s));
-                        OutputSV.ScrollToEnd();
-
-                        if (s.ToLower().Contains("failed") && oem.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
-                        {
-                            ShowHdAudioInfo();
-                        }
-                    }
-                    else
-                    {
-                        s = await helper.DeleteAndUninstallDriver(oem);
-                        OutputTB.Inlines.Add(AddString(s));
-                        OutputSV.ScrollToEnd();
-                    }
+                    await ProcessUninstallation(helper, oem);
                 }
                 
                 await LoadInfData();
@@ -341,9 +322,17 @@ namespace infappxremoval
 
                 //EnButtons();
                 WholeGrid.IsEnabled = true;
+                ShowUninstallationCompleted();
             }
         }
 
+        private async Task ProcessUninstallation(PnputilHelper helper, string oem)
+        {
+            string s;
+            s = await helper.DeleteAndUninstallDriverForce(oem);
+            OutputTB.Inlines.Add(AddString(s));
+            OutputSV.ScrollToEnd();
+        }
         private void ShowHdAudioInfo()
         {
             //string message = "Intel HD Audio Extension INF may be used by High Definition Audio Controller"
@@ -352,6 +341,13 @@ namespace infappxremoval
 
             string message = "Please uninstall High Definition Audio Controller in Device Manager, then uninstall again.\n"
                 + "請手動移除High Definition Audio Controller再移除一次";
+            string caption = "Information";
+            MessageBox.Show(message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ShowUninstallationCompleted()
+        {
+            string message = "Uninstallation Completed.\n";
             string caption = "Information";
             MessageBox.Show(message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -569,6 +565,7 @@ namespace infappxremoval
             if (btn != null)
             {
                 await UninstallAppx(btn.Tag.ToString());
+                ShowUninstallationCompleted();
             }
         }
 
@@ -818,50 +815,10 @@ namespace infappxremoval
                 //save before removing
                 List<PnputilData> savedList = SaveListToDataList();
                 PnputilHelper helper = new PnputilHelper();
-                DevconHelper dh = new DevconHelper();
 
-                string s;
                 foreach (var item in savedList)
                 {
-                    string description = string.Empty;
-                    foreach (var des in item.Descriptions)
-                    {
-                        if (des.ToLower().Contains("audio controller"))
-                        {
-                            description = des;
-                        }
-                    }
-                    if (string.IsNullOrEmpty(description))
-                    {
-                        List<string> instanceIds = new List<string>();
-                        foreach (var hwid in item.HardwareIds)
-                        {
-                            instanceIds.AddRange(await dh.FindAll(hwid));
-                        }
-
-                        foreach (var id in instanceIds)
-                        {
-                            OutputTB.Inlines.Add(AddString("Removing " + item.OriginalName + " " + id + "\n"));
-                            s = await dh.RemoveInstanceId(id);
-                            OutputTB.Inlines.Add(AddString(s));
-                            OutputSV.ScrollToEnd();
-                        }
-
-                        s = await helper.DeleteDriver(item.PublishedName);
-                        OutputTB.Inlines.Add(AddString(s));
-                        OutputSV.ScrollToEnd();
-
-                        if (s.ToLower().Contains("failed") && item.PublishedName.Equals(intelHdAudioExtInf, StringComparison.OrdinalIgnoreCase))
-                        {
-                            ShowHdAudioInfo();
-                        }
-                    }
-                    else
-                    {
-                        s = await helper.DeleteAndUninstallDriver(item.PublishedName);
-                        OutputTB.Inlines.Add(AddString(s));
-                        OutputSV.ScrollToEnd();
-                    }
+                    await ProcessUninstallation(helper, item.PublishedName);
                 }
 
                 await LoadInfData();
@@ -878,6 +835,7 @@ namespace infappxremoval
                 
                 //EnButtons();
                 WholeGrid.IsEnabled = true;
+                ShowUninstallationCompleted();
             }
         }
 
@@ -995,6 +953,9 @@ namespace infappxremoval
             run.Foreground = new SolidColorBrush(foreColor);
             run.Background = new SolidColorBrush(bgColor);
 
+            // write to log file
+            WriteLog(logFileName, text);
+
             return run;
         }
 
@@ -1005,6 +966,9 @@ namespace infappxremoval
             run.Text = text;
             run.Foreground = new SolidColorBrush(Colors.Black);
             run.Background = new SolidColorBrush(Colors.White);
+
+            // write to log file
+            WriteLog(logFileName, text);
 
             return run;
         }
@@ -1100,6 +1064,20 @@ namespace infappxremoval
                 OutputTB.Inlines.Add(AddString(exp.Message, Colors.White, Colors.Red));
                 OutputSV.ScrollToEnd();
             }
+        }
+        private void WriteLog(string logFileName, string text)
+        {
+            using (System.IO.StreamWriter file =
+            new System.IO.StreamWriter(logFileName, true))
+            {
+                file.WriteLine(text);
+            }
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            string logEnd = "\n\n######### Log End #########\n\n";
+            WriteLog(logFileName, logEnd);
         }
     }
 }

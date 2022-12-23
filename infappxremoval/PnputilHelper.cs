@@ -117,7 +117,21 @@ namespace infappxremoval
                 return outputlog.ToString();
             });
         }
+        public Task<string> DeleteAndUninstallDriverForce(string oemNumber)
+        {
+            outputlog.Clear();
+            outputlog.Append("pnputil.exe /delete-driver " + oemNumber + " /uninstall /force").AppendLine();
+            currentAction = PnputilAction.DelAndUninstall;
+            startInfo.Arguments = "/delete-driver " + oemNumber + " /uninstall /force";
+            Process deleteDriver = new Process();
+            deleteDriver.StartInfo = startInfo;
 
+            return Task.Run(() =>
+            {
+                ExecuteProc(deleteDriver);
+                return outputlog.ToString();
+            });
+        }
         private void ExecuteProc(Process process)
         {
             process.Start();
