@@ -40,7 +40,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.12b by Kin";
+            VerLabel.Content = "v0.13a by Kin|Jiaching";
         }
 
         private async void InitAll()
@@ -446,6 +446,7 @@ namespace infappxremoval
                 OutputTB.Inlines.Add(AddString("Loading " + name + " related Appx Package information..."));
                 appxLog.AddRange(await psh.GetAppxPackageFullName(name));
                 appxProvisionedLog.AddRange(await psh.GetAppxProvisionedPackageFullName(name));
+
                 OutputTB.Inlines.Add(AddString("Done\n"));
                 if (appxLog.Count == 0)
                 {
@@ -1022,16 +1023,16 @@ namespace infappxremoval
                 GoSearchInf(infs);
 
                 //load appx names from AUMIDs.txt
-                var aumidss = Directory.GetFiles(folderDialog.SelectedPath, "AUMIDs.txt", SearchOption.AllDirectories);
-                if (aumidss.Length != 0)
-                {
-                    List<string> appxNameList = new List<string>();
-                    foreach (var path in aumidss)
-                    {
-                        await ParseAppxAumid(path, appxNameList);
-                    }
-                    await GoSearchAppx(appxNameList.Distinct().ToList());
-                }
+                //var aumidss = Directory.GetFiles(folderDialog.SelectedPath, "AUMIDs.txt", SearchOption.AllDirectories);
+                //if (aumidss.Length != 0)
+                //{
+                //    List<string> appxNameList = new List<string>();
+                //    foreach (var path in aumidss)
+                //    {
+                //        await ParseAppxAumid(path, appxNameList);
+                //    }
+                //    await GoSearchAppx(appxNameList.Distinct().ToList());
+                //}
 
                 WholeGrid.IsEnabled = true;
             }

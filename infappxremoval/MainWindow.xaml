@@ -18,8 +18,8 @@
         </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="7*"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="80"/>
             </Grid.ColumnDefinitions>
             
             <StackPanel Orientation="Horizontal">
@@ -40,7 +40,7 @@
                 
                 <Button Content="DEBUG" Margin="5" Padding="2" Name="DebugBtn" Click="DebugBtn_Click" Visibility="Collapsed"/>
             </StackPanel>
-            <Label Grid.Column="1" Content="by Kin v1.0b" Name="VerLabel" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
+            <Label Grid.Column="1" Content="v0.13a by Kin|Jiaching" Name="VerLabel" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
         </Grid>
         
         <Grid Grid.Row="1">
