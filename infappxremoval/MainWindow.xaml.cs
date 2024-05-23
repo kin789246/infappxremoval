@@ -4,11 +4,9 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Threading.Tasks;
 using System.IO;
-using System.Diagnostics;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Text.RegularExpressions;
-using System.Management;
 using System.Linq;
 
 namespace infappxremoval
@@ -40,7 +38,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.13a by Kin|Jiaching";
+            VerLabel.Content = "v0.14b by Kin|Jiaching";
         }
 
         private async void InitAll()
@@ -1023,16 +1021,16 @@ namespace infappxremoval
                 GoSearchInf(infs);
 
                 //load appx names from AUMIDs.txt
-                //var aumidss = Directory.GetFiles(folderDialog.SelectedPath, "AUMIDs.txt", SearchOption.AllDirectories);
-                //if (aumidss.Length != 0)
-                //{
-                //    List<string> appxNameList = new List<string>();
-                //    foreach (var path in aumidss)
-                //    {
-                //        await ParseAppxAumid(path, appxNameList);
-                //    }
-                //    await GoSearchAppx(appxNameList.Distinct().ToList());
-                //}
+                var aumidss = Directory.GetFiles(folderDialog.SelectedPath, "AUMIDs.txt", SearchOption.AllDirectories);
+                if (aumidss.Length != 0)
+                {
+                    List<string> appxNameList = new List<string>();
+                    foreach (var path in aumidss)
+                    {
+                        await ParseAppxAumid(path, appxNameList);
+                    }
+                    await GoSearchAppx(appxNameList.Distinct().ToList());
+                }
 
                 WholeGrid.IsEnabled = true;
             }
@@ -1068,8 +1066,7 @@ namespace infappxremoval
         }
         private void WriteLog(string logFileName, string text)
         {
-            using (System.IO.StreamWriter file =
-            new System.IO.StreamWriter(logFileName, true))
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(logFileName, true))
             {
                 file.WriteLine(text);
             }

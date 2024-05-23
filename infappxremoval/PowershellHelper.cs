@@ -232,9 +232,19 @@ namespace infappxremoval
             });
         }
 
-            private void ExecutePS(PowerShell ps)
+        private void ExecutePS(PowerShell ps)
         {
-            pso = ps.Invoke();
+            try
+            {
+                pso = ps.Invoke();
+            }
+            catch (System.Exception e)
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter("exec-ps.log", true))
+                {
+                    file.WriteLine(e.ToString());
+                }
+            }
             PSDataCollection<ErrorRecord> pserr = ps.Streams.Error;
             if (pserr != null && pserr.Count > 0)
             {
