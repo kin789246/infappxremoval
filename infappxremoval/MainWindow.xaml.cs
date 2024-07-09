@@ -38,7 +38,7 @@ namespace infappxremoval
             InitAll();
 
             //load version
-            VerLabel.Content = "v0.14b by Kin|Jiaching";
+            VerLabel.Content = "v1.0 by Kin|Jiaching";
         }
 
         private async void InitAll()
@@ -60,7 +60,7 @@ namespace infappxremoval
             OutputTB.Inlines.Add(AddString("Done\n"));
             
             await LoadInfData();
-            ShowInfListItem(installedInfList);
+            //ShowInfListItem(installedInfList);
             
             string s = "Input keyword to search Appx Packages";
             Label lb1 = new Label();
@@ -790,6 +790,8 @@ namespace infappxremoval
             await LoadInfData();
             //EnButtons();
             WholeGrid.IsEnabled = true;
+            OutputTB.Inlines.Add(AddString("Done\n"));
+            OutputSV.ScrollToEnd();
             GoSearchInf(infToRemove);
         }
 
@@ -1032,6 +1034,8 @@ namespace infappxremoval
                     await GoSearchAppx(appxNameList.Distinct().ToList());
                 }
 
+                OutputTB.Inlines.Add(AddString("Done\n"));
+                OutputSV.ScrollToEnd();
                 WholeGrid.IsEnabled = true;
             }
         }
